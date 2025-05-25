@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Patient Profile</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+  <link rel="stylesheet" href="/docpatient.css"/>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body>
+<header class="dashboard-header">
+    <div class="qr-trigger" onclick="window.location.href='/doctor-dashboard'">
+      <i class="fa-solid fa-arrow-left"></i>
+  </div>
+  <div class="welcome-section">
+    <h1>Hello, Dr. <%= currentUser.fullName %></h1>
+    <p>Your Patient Profile</p>
+  </div>
+  <div class="logout-btn" onclick="window.location.href='/logout'">
+      <i class="fas fa-sign-out-alt"></i>
+  </div>
+</header>
+
+<main class="dashboard-main">
+    <section class="card doctor-connected">
+      <div class="profile-info">
+        <%if(patient.gender=='male'){%>
+        <img src="/uploads/male.jpg" alt="<%= currentUser.fullName %>">
+        <%}else{%>
+          <img src="/uploads/female.jpg" alt="<%= currentUser.fullName %>">
+        <%}%>
+        <div>
+          <h3><%= patient.fullName %></h3>
+          <p>Patient</p>
+        </div>
+      </div>
+      <div class="condition-status">
+        <strong>Condition:</strong> Under Treatment
+      </div>
+           <div class="appointments">
+  <h3>Your Upcoming Appointments with <%=patient.fullName%></h3>
+
+  <% if (appointments.length === 0) { %>
+    <p>No upcoming appointments</p>
+  <% } else { %>
+    <% appointments.forEach(appointment => { %>
+      <div class="appointment-card">
+        <div class="appointment-time">
+  <i class="fas fa-clock"></i> <strong><%= appointment.time %></strong>
+</div>
+<div class="appointment-date">
+  <i class="fas fa-calendar-alt"></i>
+  <span><%= new Date(appointment.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) %></span>
+</div>
+      </div>
+    <% }) %>
+  <% } %>
+</div>
+
+
+      <div class="doctor-actions">
+      <a href="/<%=currentUser._id%>/privatechat/<%=patient._id%>?role=Patient" class="button primary">Chat</a>
+      <a href="javascript:void(0)" class="button primary" onclick="openPrescriptionForm()">Prescribe Medication</a>
+      <a href="/end-treatment" class="button danger" onclick="return confirmEndTreatment()">End Treatment</a>
+
+    </div>
+    </section>
+    <section class="card medications">
+  <h2>Prescribed Medications</h2>
+  <% if (medications.length === 0) { %>
+    <p>No medications prescribed yet.</p>
+  <% } else { %>
+    <ul>
+      <% medications.forEach(med => { %>
+        <li>
+          <form method="POST" action="/delete-medication/<%= med._id %>" class="delete-medication-form">
+            <button type="submit" class="delete-btn" title="Remove Medication">
+              <i class="fas fa-times"></i>
+            </button>
+          </form>
+          <strong><%= med.name %></strong> – <%= med.dosage %> – <%= med.frequency %> – <%= med.duration %>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</section>
+
+         <section>
+      <div class="timeline-container">
+        <h2>Progress Timeline</h2>
+        <p>View your Patient progress and updates</p>
+  <% timeline.forEach(chat => { %>
+    <div class="timeline-entry">
+      <div class="timeline-date">
+        <i class="fa fa-calendar"></i> <%= chat.createdAt.toDateString() %>
+        <i class="fa fa-clock"></i> <%= chat.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
+      </div>
+
+      <div class="timeline-bubble">
+        <div class="timeline-header">
+          <%if(chat.from.role === 'doctor'){%>
+            <strong>Dr. <%= chat.from.fullName %></strong>
+          <%} else {%>
+          <strong><%=chat.from.fullName%></strong>
+          <%}%>
+        </div>
+
+         <% if (chat.imageUrl) { %>
+            <div>Progress photo uploaded</div>
+            <img src="<%= chat.imageUrl %>" class="timeline-image" />
+          <% } %>
+        <div class="timeline-caption">
+          <%= chat.caption || 'Treatment Update' %>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+</div>
+    </section>
+    <div id="prescriptionModal" class="modal-overlay" style="display: none;">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closePrescriptionForm()">&times;</span>
+    <h2>Prescribe Medication</h2>
+    <form id="prescriptionForm" method="POST" action="/prescribe-medication">
+      <input type="hidden" name="patientId" value="<%= patient._id %>" />
+
+      <div id="medicationsContainer">
+        <div class="medication-entry">
+      <span class="remove-icon" onclick="this.parentElement.remove()">&times;</span>
+      <input type="text" name="medications[0][name]" placeholder="Medicine Name" required />
+      <input type="text" name="medications[0][dosage]" placeholder="Dosage" required />
+      <input type="text" name="medications[0][frequency]" placeholder="Frequency (e.g., twice a day)" required />
+      <input type="text" name="medications[0][duration]" placeholder="Duration (e.g., 5 days)" required />
+    </div>
+
+      </div>
+      <button type="button" class="button" onclick="addMedicationField()">Add More</button>
+      <button type="submit" class="button primary">Submit</button>
+    </form>
+  </div>
+</div>
+
+</main>
+<script>
+  function confirmEndTreatment() {
+    return confirm('Are you sure you want to end treatment? This action cannot be undone.');
+  }
+</script>
+
+<script>
+  let html5QrcodeScanner;
+
+  function openScanner() {
+    document.getElementById("qrModal").style.display = "flex";
+    document.body.style.overflow = "hidden";
+    html5QrcodeScanner = new Html5Qrcode("reader");
+    html5QrcodeScanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      decodedText => {
+        window.location.href = decodedText;
+        html5QrcodeScanner.stop();
+      },
+      error => {}
+    ).catch(console.error);
+  }
+
+  function scanFromImage() {
+    const fileInput = document.getElementById("qr-image-input");
+    if (!fileInput.files.length) return;
+    const imageFile = fileInput.files[0];
+    html5QrcodeScanner.stop().then(() => {
+      html5QrcodeScanner.scanFile(imageFile, true)
+        .then(decodedText => {
+          window.location.href = decodedText;
+        })
+        .catch(() => alert("QR code not recognized."));
+    });
+  }
+
+  function closeScanner() {
+    document.getElementById("qrModal").style.display = "none";
+    document.body.style.overflow = "";
+    if (html5QrcodeScanner) {
+      html5QrcodeScanner.stop().then(() => html5QrcodeScanner.clear());
+    }
+  }
+
+  // Dismiss error box
+  document.addEventListener("DOMContentLoaded", () => {
+    const closeBtn = document.getElementById('closeError');
+    const errorBox = document.getElementById('errorBox');
+    if (closeBtn && errorBox) {
+      closeBtn.addEventListener('click', () => errorBox.style.display = 'none');
+    }
+  });
+</script>
+<script>
+  // Remove ?error=... from URL after loading
+  if (window.location.search.includes('error')) {
+    const url = new URL(window.location);
+    url.searchParams.delete('error');
+    window.history.replaceState({}, document.title, url.pathname);
+  }
+</script>
+<script>
+  function openPrescriptionForm() {
+    document.getElementById("prescriptionModal").style.display = "flex";
+    document.body.style.overflow = "hidden";
+  }
+
+  function closePrescriptionForm() {
+    document.getElementById("prescriptionModal").style.display = "none";
+    document.body.style.overflow = "";
+  }
+
+  let medIndex = 1;
+
+function addMedicationField() {
+  const container = document.getElementById("medicationsContainer");
+  const entry = document.createElement("div");
+  entry.className = "medication-entry";
+  entry.innerHTML = `
+    <span class="remove-icon" onclick="this.parentElement.remove()">&times;</span>
+    <input type="text" name="medications[${medIndex}][name]" placeholder="Medicine Name" required />
+    <input type="text" name="medications[${medIndex}][dosage]" placeholder="Dosage" required />
+    <input type="text" name="medications[${medIndex}][frequency]" placeholder="Frequency" required />
+    <input type="text" name="medications[${medIndex}][duration]" placeholder="Duration" required />
+  `;
+  container.appendChild(entry);
+  medIndex++;
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chatverse</title>
+  <link rel="icon" href="/uploads/logo.png" />
+  <link rel="stylesheet" href="user.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+</head>
+<body>
+  <div class="chatverse-container">
+    <aside class="sidebar">
+      <div class="logo">💬 <span>ChatVerse</span></div>
+      <div class="welcome-bar">
+        <div class="Welcome-name">Welcome, <%= currentUser.username %>!</div>
+        <div class="logout">
+          <form action="/logout" method="POST">
+            <button type="submit">Logout</button>
+          </form>
+        </div>
+        <div class="chat-toggle">
+          <button id="private-toggle" class="toggle-btn active" onclick="window.location.href='/users'">
+           <i class="fas fa-user-friends"></i> Private Chat
+          </button>
+          <button id="group-toggle" class="toggle-btn" onclick="window.location.href='/groupchat'">
+          <i class="fas fa-users"></i> Group Chat
+          </button>
+        </div>
+              
+      </div>
+      <div class="search">
+        <input type="text" id="user-search" placeholder="Search users..." />
+      </div>
+      
+        <% const hasOnlineUsers = users.some(user => user.username !== currentUser.username && onlineUserIds.includes(user._id.toString())); %>
+      <% if (hasOnlineUsers) { %>
+        <h4>🟢 Online Users</h4>
+      <% } %>
+      <ul id="users-list-online">
+        <% users.forEach(user => {
+          if (user.username !== currentUser.username && onlineUserIds.includes(user._id.toString())) { %>
+          <li class="user-card online" data-username="<%= user.username.toLowerCase() %>" data-user-id="<%= user._id %>">
+            <a href="/<%= currentUser._id %>/privatechat/<%= user._id %>">
+              <div class="user-info">
+                <img src="/uploads/<%= user.gender === 'male' ? 'download.jpg' : 'female.jpg' %>" class="user-avatar" />
+                <span class="user-name"><%= user.username %></span>
+              </div>
+            </a>
+          </li>
+        <% } }); %>
+      </ul>
+
+      <% if (users.some(user => user.username !== currentUser.username && !onlineUserIds.includes(user._id.toString()))) { %>
+        <h4>🔴 Offline Users</h4>
+      <% } %>
+      <ul id="users-list-offline">
+        <% users.forEach(user => {
+          if (user.username !== currentUser.username && !onlineUserIds.includes(user._id.toString())) { %>
+          <li class="user-card offline" data-username="<%= user.username.toLowerCase() %>" data-user-id="<%= user._id %>">
+            <a href="/<%= currentUser._id %>/privatechat/<%= user._id %>">
+              <div class="user-info">
+                <img src="/uploads/<%= user.gender === 'male' ? 'download.jpg' : 'female.jpg' %>" class="user-avatar" />
+                <span class="user-name"><%= user.username %></span>
+              </div>
+            </a>
+          </li>
+        <% } }); %>
+      </ul>
+          
+          
+    </aside>
+
+    <main class="chat-area">
+      <div class="chat-placeholder">
+        <p>Select a user to start chatting</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const searchInput = document.getElementById('user-search');
+    const userCards = document.querySelectorAll('#users-list .user-card');
+  
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.toLowerCase();
+      userCards.forEach(card => {
+        const username = card.dataset.username;
+        card.style.display = username.includes(query) ? 'block' : 'none';
+      });
+    });
+    document.getElementById('user-search').addEventListener('input', e => {
+      const query = e.target.value.toLowerCase();
+      document.querySelectorAll('.user-card').forEach(card => {
+        card.style.display = card.dataset.username.includes(query) ? 'block' : 'none';
+      });
+    });
+    socket.on('user status', ({ userId, status }) => {
+  const userCard = document.querySelector(`.user-card[data-user-id="${userId}"]`);
+  if (!userCard) return;
+
+  const listOnline = document.getElementById('users-list-online');
+  const listOffline = document.getElementById('users-list-offline');
+
+  if (status === 'online') {
+    userCard.classList.remove('offline');
+    userCard.classList.add('online');
+    listOnline.appendChild(userCard);
+  } else {
+    userCard.classList.remove('online');
+    userCard.classList.add('offline');
+    listOffline.appendChild(userCard);
+  }
+});
+
+  </script>
+  
+</body>
+</html>
+

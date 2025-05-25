@@ -1,0 +1,144 @@
+/* Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: url('/uploads/doctorback.jpg') repeat;
+  background-size: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.form-container {
+  background: #ffffffee;
+  padding: 30px 25px;
+  width: 100%;
+  max-width: 80%;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  margin: 20px;
+  backdrop-filter: blur(4px);
+}
+
+h2 {
+  text-align: center;
+  color: #0b74de;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #555;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+label {
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #333;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+input[type="number"],
+select {
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border 0.3s ease;
+}
+
+input:focus {
+  border-color: #0b74de;
+  outline: none;
+}
+
+.submit-btn {
+  width: 100%;
+  background: #0b74de;
+  color: #fff;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-top: 10px;
+}
+
+.submit-btn:hover {
+  background: #095bb5;
+}
+
+.login-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.login-link a {
+  color: #0b74de;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .form-container {
+    padding: 20px 15px;
+    margin: 0;
+    margin-top: 25px;
+    margin-bottom: 25px;
+    max-width: 90%;
+  }
+  body{
+    padding: 0;
+    margin: 0;
+  }
+}
+.icon-back-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  background-color: #fff;
+  color: #222;
+  font-size: 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.icon-back-btn:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  transform: scale(1.05);
+}
+

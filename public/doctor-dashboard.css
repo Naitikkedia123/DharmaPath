@@ -1,0 +1,620 @@
+/* Reset & Base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+    background-color: #f4f9f8;
+  color: #1e293b;
+  line-height: 1.6;
+}
+.main{
+  background: #f1f5f9;
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+/* Layout */
+.dashboard {
+  margin: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  background-color: white;
+  padding: 20px;
+}
+
+.header h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.qr-icon {
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #3b82f6;
+}
+
+/* Search Box */
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+.search-box input {
+  border: none;
+  flex: 1;
+  font-size: 1rem;
+  outline: none;
+}
+
+.search-box i {
+  color: #64748b;
+  margin-left: 10px;
+}
+
+/* Appointments & Patients */
+.appointments,
+.patients {
+  background: #f1f5f9;
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+.appointments h3,
+.patients h3 {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.appointments a,
+.patients a {
+  font-size: 0.9rem;
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+/* Cards */
+.appointment-card,
+.patient-card {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.cancel-appointment {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  color: #ef4444;
+  cursor: pointer;
+}
+
+.appointment-left {
+  display: flex;
+  align-items: center;
+}
+
+.appointment-left img,
+.card-info img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.appointment-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.appointment-date {
+  text-align: right;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+/* Patients */
+.patient-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.card-info {
+  display: flex;
+  align-items: center;
+}
+
+.card-info div {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-info strong {
+  font-size: 1rem;
+}
+
+.card-info small {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.card-status {
+  background: #e0f2fe;
+  color: #0284c7;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* QR Modal */
+/* Responsive */
+@media (max-width: 768px) {
+  .appointment-card,
+  .patient-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .appointment-date {
+    text-align: left;
+    margin-top: 10px;
+  }
+
+  .header {
+    gap: 10px;
+  }
+}
+
+.qr-icon {
+  font-size: 2rem;
+  color: #0284c7;
+  padding: 10px;
+  cursor: pointer;
+  transition: transform 0.3s, background-color 0.3s;
+}
+
+.qr-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Search Box */
+
+/* QR Modal */
+.qr-modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.85);
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.qr-modal img {
+  width: 280px;
+  height: 280px;
+  border: 5px solid #fff;
+}
+
+.qr-modal button {
+  margin-top: 24px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  background: #0d6efd;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.qr-modal button:hover {
+  background: #0b5ed7;
+}
+
+/* -------------------
+   Media Queries
+------------------- */
+
+.appointment-card {
+  position: relative;
+  padding: 15px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+
+.cancel-appointment {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 25px;
+  cursor: pointer;
+  color: #888;
+  transition: color 0.2s;
+}
+
+.cancel-appointment:hover {
+  color: red;
+}
+.patient-card {
+  padding: 15px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+
+/* ========= Base Reset ========= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(to right, #f1f5f9, #e0f7fa);
+  color: #0f172a;
+}
+
+/* ========= Dashboard Layout ========= */
+.dashboard {
+  margin: auto;
+  animation: fadeIn 0.8s ease;
+}
+.main{
+  padding: 2rem;
+  background: linear-gradient(to right, #f1f5f9, #e0f7fa);
+}
+/* ========= Header ========= */
+.header {
+  background: rgba(255, 255, 255, 0.85);
+  padding: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(12px);
+  animation: slideDown 0.6s ease;
+}
+
+.header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.qr-icon {
+  background-color: #0ea5e9;
+  color: white;
+  padding: 14px;
+  font-size: 1.4rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.qr-icon:hover {
+  transform: scale(1.1);
+  background-color: #0284c7;
+}
+
+/* ========= Search Box ========= */
+.search-box {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  margin-bottom: 2rem;
+}
+
+.search-box input {
+  border: none;
+  flex: 1;
+  font-size: 1rem;
+  outline: none;
+  color: #111827;
+}
+
+.search-box i {
+  color: #94a3b8;
+  font-size: 1.2rem;
+}
+
+/* ========= Section Cards ========= */
+.section {
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.6s ease;
+}
+
+.section h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #1e293b;
+}
+
+.section a {
+  color: #3b82f6;
+  font-weight: 500;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+/* ========= Cards ========= */
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.08);
+}
+
+.card img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  margin-right: 14px;
+  object-fit: cover;
+  border: 3px solid #e0f2fe;
+}
+
+.card-left {
+  display: flex;
+  align-items: center;
+}
+
+.card-info {
+  display: flex;
+}
+
+.card-info strong {
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.card-info small {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.card-date,
+.card-status {
+  font-size: 0.85rem;
+  color: #475569;
+  text-align: right;
+}
+
+/* ========= Status Badge ========= */
+.card-status {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* ========= Cancel Icon ========= */
+.cancel-appointment {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.cancel-appointment:hover {
+  color: #ef4444;
+}
+
+/* ========= QR Modal ========= */
+.qr-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.qr-modal img {
+  width: 280px;
+  height: 280px;
+  border: 6px solid #fff;
+}
+
+.qr-modal button {
+  margin-top: 20px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.qr-modal button:hover {
+  background: #1e40af;
+}
+
+/* ========= Animations ========= */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ========= Responsive ========= */
+@media (max-width: 768px) {
+  .header {
+    gap: 10px;
+  }
+
+  .card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .card-date,
+  .card-status {
+    text-align: left;
+  }
+}
+@media (max-width: 768px) {
+  .appointment-card,
+  .patient-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .appointment-date,
+  .card-status {
+    margin-top: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header h2 {
+    font-size: 20px;
+  }
+
+  .qr-icon {
+    font-size: 1.4rem;
+  }
+
+  .appointment-left img,
+  .card-info img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .appointment-info strong,
+  .card-info strong {
+    font-size: 14px;
+  }
+
+  .appt-time,
+  .card-info small {
+    font-size: 12px;
+  }
+}
+.logout-btn {
+  background-color: #ffe5e5;
+  color: #dc2626; /* red-600 */
+  padding: 0px 15px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background-color 0.3s, transform 0.2s, color 0.3s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.logout-btn:hover {
+  background-color: #fecaca; /* lighter red on hover */
+  transform: scale(1.05);
+  color: #b91c1c; /* darker red */
+}
+
+/* Hide "Logout" text on smaller screens */
+.logout-btn .logout-text {
+  display: inline;
+}
+
+@media (max-width: 600px) {
+
+  .logout-btn {
+    padding: 10px;
+  }
+}
+.qr-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.download-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.download-btn:hover {
+  background-color: #0056b3;
+}

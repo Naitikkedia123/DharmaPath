@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>ChatVerse</title>
+  <link rel="icon" href="/uploads/logo.png" />
+  <link rel="stylesheet" href="/privatechat.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+</head>
+<body>
+  <div class="chatverse-container">
+    <main class="chat-area">
+      <div class="chat-header">
+        <a href="javascript:void(0)" class="back-button" aria-label="Go back" onclick="goBackWithReload()">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div class="chat-header-info">
+          <h3>
+            <%= user.fullName %> 
+            <span id="user-status">⚪ Offline</span>
+          </h3>
+          <% if (user.role.toLowerCase() === 'patient') { %>
+            <button id="scheduleBtn" class="btn-schedule-appointment full-btn">Schedule Appointment</button>
+            <button id="scheduleBtnIcon" class="btn-schedule-appointment icon-btn" title="Schedule Appointment">
+              <i class="fa-regular fa-calendar-check"></i>
+            </button>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Appointment Modal -->
+      <div id="appointmentModal" class="appointment-modal hidden">
+        <div class="appointment-modal-content">
+          <h3 class="modal-title">Schedule Appointment</h3>
+          <form id="appointmentForm">
+            <label class="modal-label">
+              Date:
+              <input type="date" name="date" id="appointmentDate" class="modal-input" required>
+            </label>
+            <label class="modal-label">
+              Time:
+              <input type="time" name="time" id="appointmentTime" class="modal-input" required>
+            </label>
+            <div class="modal-actions">
+              <button type="button" id="cancelModal" class="modal-cancel">Cancel</button>
+              <button type="submit" class="modal-confirm">Confirm</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="chat-box">
+        <% chats.forEach(chat => {
+          const isSent = chat.from._id.toString() === currentUser._id.toString();
+          const isUnread = chat.to._id.toString() === currentUser._id.toString() && chat.status !== 'read';
+          const time = new Date(chat.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+        %>
+          <div class="message <%= isSent ? 'sent' : 'received' %>" data-message-id="<%= chat._id %>" data-is-unread="<%= isUnread %>">
+            <% if (chat.type === 'image') { %>
+                <div class="chat-image-wrapper">
+                  <img src="<%= chat.msg %>" alt="Image" class="chat-image" />
+                  <a href="<%= chat.msg %>" target="_blank" download class="download-icon" title="Download Image">
+                    <i class="fa-solid fa-download"></i>
+                  </a>
+                  <% if (chat.caption) { %>
+                    <div class="image-caption"><%= chat.caption %></div>
+                  <% } %>
+                </div>
+              <% } else { %>
+              <div><%= chat.msg %></div>
+            <% } %>
+            <div class="meta">
+              <span class="time"><%= time %></span>
+              <% if (isSent) { %>
+                <% const isDelivered = chat.status === 'delivered'; %>
+                <% const isRead = chat.status === 'read'; %>
+                <span class="tick <%= isRead ? 'read' : '' %>">
+                  <%= isDelivered || isRead ? '✔✔' : '✔' %>
+                </span>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+
+      <!-- Chat Input Form -->
+      <div id="imagePreviewContainer" class="image-preview-container hidden">
+  <img id="imagePreview" class="image-preview" alt="Preview" />
+  <button type="button" id="removePreview" class="remove-preview" title="Remove Image">
+    <i class="fa-solid fa-xmark"></i>
+  </button>
+</div>
+      <form id="form" enctype="multipart/form-data">
+        <div class="chat-input-wrapper">
+          <label for="imageInput" class="image-upload-label">
+            <i class="fa-solid fa-image upload-icon"></i>
+          </label>
+          <input type="file" id="imageInput" name="image" accept="image/*" style="display: none;" />
+
+          <input type="text" id="input" placeholder="Type a message or image caption..." />
+
+          <button type="submit">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </form>
+    </main>
+  </div>
+  <div id="uploadOverlay" class="upload-overlay hidden">
+  <div class="spinner"></div>
+</div>
+
+  <audio id="chat-sound" src="/uploads/message-send-292621.mp3" preload="auto"></audio>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const chatBox = document.getElementById('chat-box');
+    const input = document.getElementById('input');
+    const form = document.getElementById('form');
+    const chatSound = document.getElementById('chat-sound');
+    const currentUserId = '<%= currentUser._id %>';
+    const otherUserId = '<%= user._id %>';
+    const currentUserRole = '<%= currentUser.role.toLowerCase() %>';
+
+    function playSound() {
+      chatSound.currentTime = 0;
+      chatSound.play().catch(e => console.log("Sound blocked:", e));
+    }
+
+    socket.emit('register', { userId: currentUserId, role: currentUserRole });
+
+    window.addEventListener('load', () => {
+      document.querySelectorAll('[data-is-unread="true"]').forEach(msg => {
+        socket.emit('read message', { messageId: msg.dataset.messageId });
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+    const overlay = document.getElementById('uploadOverlay');
+
+// Inside submit event
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const file = document.getElementById('imageInput').files[0];
+  const text = input.value.trim();
+
+  if (file) {
+    overlay.classList.remove('hidden'); // Show loader
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('to', otherUserId);
+      formData.append('caption', text);
+
+      await fetch('/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+    } catch (error) {
+      console.error('Upload failed', error);
+      alert('Image upload failed. Please try again.');
+    } finally {
+      overlay.classList.add('hidden'); // Hide loader
+      document.getElementById('imageInput').value = '';
+      input.value = '';
+    }
+  } else if (text) {
+    socket.emit('private message', {
+      from: currentUserId,
+      to: otherUserId,
+      msg: text,
+      type: 'text',
+    });
+    input.value = '';
+  }
+
+  playSound();
+});
+
+
+    socket.on('private message', data => {
+      const time = new Date(data.createdAt).toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Kolkata'
+      });
+
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message', data.from === currentUserId ? 'sent' : 'received');
+      messageElement.dataset.messageId = data._id;
+
+      let content = '';
+      if (data.type === 'image') {
+        content = `
+          <div class="chat-image-wrapper">
+            <img src="${data.msg}" alt="Image" class="chat-image" />
+          <a href="${data.msg}" target="_blank" download class="download-icon" title="Download Image">
+            <i class="fa-solid fa-download"></i>
+          </a>
+
+          </div>`;
+        if (data.caption) {
+          content += `<div class="image-caption">${data.caption}</div>`;
+        }
+      } else {
+        content = `<div>${data.msg}</div>`;
+      }
+
+      const tickHTML = data.from === currentUserId
+        ? `<span class="tick ${data.status === 'read' ? 'read' : ''}">
+            ${data.status === 'read' || data.status === 'delivered' ? '✔✔' : '✔'}
+          </span>` : '';
+
+      messageElement.innerHTML = `
+        ${content}
+        <div class="meta">
+          <span class="time">${time}</span>
+          ${tickHTML}
+        </div>
+      `;
+
+      chatBox.appendChild(messageElement);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      if (data.to === currentUserId) {
+        socket.emit('read message', { messageId: data._id });
+      }
+
+      playSound();
+    });
+
+    socket.on('message read', ({ messageId }) => {
+      const message = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (message) {
+        const tick = message.querySelector('.tick');
+        if (tick) {
+          tick.textContent = '✔✔';
+          tick.classList.add('read');
+        }
+      }
+    });
+
+    socket.on('user status', ({ userId, status }) => {
+      if (userId === otherUserId) {
+        document.getElementById('user-status').textContent = status === 'online' ? '🟢 Online' : '⚪ Offline';
+      }
+    });
+  </script>
+
+  <script>
+    const scheduleBtn = document.getElementById("scheduleBtn");
+    const scheduleBtnIcon = document.getElementById("scheduleBtnIcon");
+    const appointmentModal = document.getElementById("appointmentModal");
+    const cancelModal = document.getElementById("cancelModal");
+    const appointmentForm = document.getElementById("appointmentForm");
+
+    function openAppointmentModal() {
+      appointmentModal.classList.remove("hidden");
+    }
+
+    function closeAppointmentModal() {
+      appointmentModal.classList.add("hidden");
+    }
+
+    scheduleBtn?.addEventListener("click", openAppointmentModal);
+    scheduleBtnIcon?.addEventListener("click", openAppointmentModal);
+    cancelModal?.addEventListener("click", closeAppointmentModal);
+
+    appointmentForm?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const date = appointmentForm.date.value;
+      const time = appointmentForm.time.value;
+
+      socket.emit("schedule_appointment", {
+        doctorID: "<%= currentUser._id %>",
+        patientID: "<%= user._id %>",
+        date,
+        time,
+      });
+
+      closeAppointmentModal();
+      appointmentForm.reset();
+    });
+
+    const dateInput = document.getElementById('appointmentDate');
+    const timeInput = document.getElementById('appointmentTime');
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    dateInput.min = `${yyyy}-${mm}-${dd}`;
+
+    function updateTimeMin() {
+      const selectedDate = dateInput.value;
+      const now = new Date();
+      const selected = new Date(selectedDate + "T00:00");
+
+      if (
+        selected.getFullYear() === now.getFullYear() &&
+        selected.getMonth() === now.getMonth() &&
+        selected.getDate() === now.getDate()
+      ) {
+        now.setHours(now.getHours() + 1);
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mins = String(now.getMinutes()).padStart(2, '0');
+        timeInput.min = `${hh}:${mins}`;
+      } else {
+        timeInput.min = "00:00";
+      }
+    }
+
+    dateInput.addEventListener('change', updateTimeMin);
+    updateTimeMin();
+  </script>
+  <script>
+  const imageInput = document.getElementById('imageInput');
+  const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+  const imagePreview = document.getElementById('imagePreview');
+  const removePreviewBtn = document.getElementById('removePreview');
+
+  imageInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        imagePreview.src = e.target.result;
+        imagePreviewContainer.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  removePreviewBtn.addEventListener('click', () => {
+    imageInput.value = '';
+    imagePreviewContainer.classList.add('hidden');
+    imagePreview.src = '';
+  });
+
+  // Hide preview after sending image
+  form.addEventListener('submit', () => {
+    imagePreviewContainer.classList.add('hidden');
+    imagePreview.src = '';
+  });
+</script>
+<script>
+  function goBackWithReload() {
+    const referrer = document.referrer;
+    if (referrer) {
+      window.location.href = referrer; // Go to previous page and reload
+    } else {
+      window.history.back(); // fallback if no referrer
+    }
+  }
+</script>
+
+</body>
+</html>

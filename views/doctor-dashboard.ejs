@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Doctor Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+  <link rel="stylesheet" href="/doctor-dashboard.css" />
+</head>
+<body>
+  <div class="dashboard">
+    <div class="header">
+  <h2>Welcome back, Dr. <%= currentUser.fullName %></h2>
+  <div style="display: flex; gap: 1rem;">
+    <div class="qr-icon" onclick="openQR()">
+      <i class="fas fa-qrcode"></i>
+    </div>
+    <div class="logout-btn" onclick="window.location.href='/logout'">
+      <i class="fas fa-sign-out-alt"></i>
+    </div>
+  </div>
+</div>
+
+    </div>
+    <div class="main">
+    <div class="search-box">
+      <input type="text" placeholder="Search patients...">
+      <i class="fas fa-filter"></i>
+    </div>
+
+   <div class="appointments">
+  <h3>Upcoming Appointments <a href="#">See All →</a></h3>
+  <% if (appointments.length === 0) { %>
+    <p class="no-appointments">No upcoming appointments</p>
+  <% } else { %>
+    <% appointments.forEach(appointment => { %>
+      <div class="appointment-card" data-id="<%= appointment._id %>">
+        <button class="cancel-appointment" title="Cancel Appointment">&times;</button>
+        <div class="appointment-left">
+          <%if(appointment.patient.gender=='male'){%>
+          <img src="/uploads/male.jpg" alt="<%= appointment.patient.fullName %>">
+          <%}else{%>
+            <img src="/uploads/female.jpg" alt="<%= appointment.patient.fullName %>">
+          <%}%>
+          <div class="appointment-info">
+            <strong><i class="fas fa-clock"></i> <%= appointment.time %></strong>
+            <div class="appt-time"><%= appointment.patient.fullName %></div>
+          </div>
+        </div>
+        <div class="appointment-date">
+          <i class="fas fa-calendar-alt"></i>
+          <span><%= new Date(appointment.date).toLocaleDateString('en-GB', {
+            weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+          }) %></span>
+        </div>
+      </div>
+    <% }) %>
+  <% } %>
+</div>
+
+
+    <div class="patients">
+      <h3>Your Patients <a href="#">See All →</a></h3>
+      <% patients.forEach(patient => { %>
+        <a href="/docpatient/<%=patient._id%>" class="patient-link">
+          <div class="patient-card">
+            <div class="card-info">
+              <%if(patient.gender=='male'){%>
+              <img src="/uploads/male.jpg" alt="<%=patient.fullName %>">
+              <%}else{%>
+                <img src="/uploads/female.jpg" alt="<%=patient.fullName %>">
+              <%}%>
+              <div>
+                <strong><%= patient.fullName %></strong>
+                <small><%= patient.age %> years • <%= patient.gender %> • <%= patient.condition %></small>
+                <small>Last active: <%= patient.lastActiveDisplay %></small>
+              </div>
+            </div>
+            <div class="card-status"><%= patient.status %></div>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+  </div>
+  </div>
+  <!-- QR Modal -->
+  <!-- QR Modal -->
+<div class="qr-modal" id="qrModal">
+  <img id="qrImage" src="<%= currentUser.qr %>" alt="QR Code">
+  
+  <div class="qr-actions">
+    <a id="downloadQRBtn" download="doctor-qr.png" class="download-btn" href="<%= currentUser.qr %>">
+      <i class="fas fa-download"></i> Download QR
+    </a>
+    <button onclick="closeQR()" class="close-btn">Close</button>
+  </div>
+</div>
+
+
+<script>
+  document.getElementById("downloadQRBtn").addEventListener("click", function (e) {
+    e.preventDefault();
+    const qrUrl = "<%= currentUser.qr %>";
+
+    const newTab = window.open();
+    fetch(qrUrl)
+      .then(res => res.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        newTab.location.href = url;
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "doctor-qr.png";
+        newTab.document.body.appendChild(a);
+        a.click();
+
+        // Clean up
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+  });
+</script>
+  <script>
+    function openQR() {
+      document.getElementById('qrModal').style.display = 'flex';
+    }
+    function closeQR() {
+      document.getElementById('qrModal').style.display = 'none';
+    }
+
+  document.querySelectorAll('.cancel-appointment').forEach(button => {
+  button.addEventListener('click', async (event) => {
+    const card = event.target.closest('.appointment-card');
+    const appointmentId = card.getAttribute('data-id');
+
+    if (!confirm('Are you sure you want to cancel this appointment?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/appointments/${appointmentId}`, {
+  method: 'DELETE',
+  headers: { 'Content-Type': 'application/json' }
+});
+
+const contentType = response.headers.get('content-type');
+
+if (response.ok) {
+  if (contentType && contentType.includes('application/json')) {
+    const data = await response.json();
+    alert(data.message || 'Appointment cancelled successfully.');
+  } else {
+    // No JSON returned, still successful
+    alert('Appointment cancelled successfully.');
+  }
+  card.remove();
+} else {
+  // Response not OK
+  if (contentType && contentType.includes('application/json')) {
+    const errorData = await response.json();
+    alert('Failed to cancel appointment: ' + (errorData.message || response.statusText));
+  } else {
+    // Got HTML or something else
+    const text = await response.text();
+    alert('Failed to cancel appointment. Server response: ' + text);
+  }
+}
+
+    } catch (error) {
+      alert('Error cancelling appointment: ' + error.message);
+    }
+  });
+});
+  </script>
+</body>
+</html>
+

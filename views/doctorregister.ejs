@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Doctor Registration</title>
+  <link rel="stylesheet" href="register.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    .error-msg {
+      color: #d8000c;
+      background-color: #ffbaba;
+      border-left: 6px solid #d8000c;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Medical Professional Registration</h2>
+    <p class="subtitle">Complete your profile to get started</p>
+
+    <!-- Server-side error messages -->
+    <div id="server-error-container"></div>
+
+    <form action="/docregister" method="POST" onsubmit="return validateForm()">
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="fullName" placeholder="Dr. John Doe" required />
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input type="tel" id="phone" name="phoneNumber" placeholder="e.g., +91 9876543210" required />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required />
+      </div>
+
+      <div class="form-group">
+        <label for="license">Medical License ID</label>
+        <input type="text" id="license" name="licenseId" placeholder="e.g., MED123456" required />
+      </div>
+
+      <div class="form-group">
+        <label for="clinic">Clinic Location</label>
+        <input type="text" id="clinic" name="clinicLocation" placeholder="City, State or Hospital Name" required />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Create a strong password" required />
+      </div>
+
+      <div class="form-group">
+        <label for="confirm-password">Confirm Password</label>
+        <input type="password" id="confirm-password" name="confirmPassword" placeholder="Re-enter your password" required />
+      </div>
+
+      <button type="submit" class="submit-btn">Register</button>
+    </form>
+
+    <p class="login-link">Already have an account? <a href="/doctorlogin">Login here</a></p>
+  </div>
+
+  <a href="/home" class="icon-back-btn" aria-label="Go back">
+    <i class="fa-solid fa-arrow-left"></i>
+  </a>
+
+  <!-- JS for client-side validation -->
+  <script>
+    function validateForm() {
+      const phone = document.getElementById("phone").value.trim();
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirm-password").value;
+
+      // Basic phone check
+      if (!/^\d{10}$/.test(phone)) {
+        alert("Phone number must be exactly 10 digits.");
+        return false;
+      }
+
+      // Password match
+      if (password !== confirmPassword) {
+        alert("Passwords do not match.");
+        return false;
+      }
+
+      // Password strength
+      if (password.length < 6) {
+        alert("Password should be at least 6 characters long.");
+        return false;
+      }
+
+      return true;
+    }
+
+    // Show server-side errors from URL
+   const params = new URLSearchParams(window.location.search);
+const errorType = params.get("error");
+const errorDetails = params.get("details");
+if (errorType) {
+  const errorContainer = document.getElementById("server-error-container");
+  let msg = "";
+
+  switch (errorType) {
+    case "duplicate_phone":
+      msg = "Phone number already registered.";
+      break;
+    case "duplicate_email":
+      msg = "Email is already in use.";
+      break;
+    case "duplicate_license":
+      msg = "Medical license ID is already registered.";
+      break;
+    case "missing_fields":
+      msg = "Please fill in all required fields.";
+      break;
+    case "internal":
+      msg = "An internal error occurred. Please try again.";
+      break;
+    case "validation":
+      msg = errorDetails ? decodeURIComponent(errorDetails) : "Validation failed.";
+      break;
+    default:
+      msg = "An unknown error occurred.";
+  }
+
+  errorContainer.innerHTML = `<div class="error-msg">${msg}</div>`;
+}
+
+
+  </script>
+</body>
+</html>

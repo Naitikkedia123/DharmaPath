@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Patient Dashboard</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+  <link rel="stylesheet" href="/patient-dashboard.css"/>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body>
+
+<% if (error) { %>
+  <div class="error-msg" id="errorBox">
+    <span id="closeError">&times;</span>
+    <%= error %>
+  </div>
+<% } %>
+
+<header class="dashboard-header">
+  <div class="welcome-section">
+    <h1>Hello, <%= currentUser.fullName %></h1>
+    <p>Your treatment summary</p>
+  </div>
+  <div class="qr-trigger" onclick="openScanner()">
+    <i class="fas fa-qrcode"></i>
+  </div>
+  <div class="logout-btn" onclick="window.location.href='/logout'">
+      <i class="fas fa-sign-out-alt"></i>
+  </div>
+</header>
+
+<main class="dashboard-main">
+
+  <% if (doctor) { %>
+    <section class="card doctor-connected">
+      <div class="profile-info">
+        <img src="/uploads/doctor.webp" alt="Doctor">
+        <div>
+          <h3>Dr.<%= doctor.fullName %></h3>
+          <p><%= doctor.specialization || 'General Practitioner' %></p>
+        </div>
+      </div>
+      <div class="condition-status">
+        <strong>Condition:</strong> Under Treatment
+      </div>
+           <div class="appointments">
+  <h3>Your Upcoming Appointments</h3>
+
+  <% if (appointments.length === 0) { %>
+    <p>No upcoming appointments</p>
+  <% } else { %>
+    <% appointments.forEach(appointment => { %>
+      <div class="appointment-card">
+        <div class="appointment-time">
+  <i class="fas fa-clock"></i> <strong><%= appointment.time %></strong>
+</div>
+<div class="appointment-date">
+  <i class="fas fa-calendar-alt"></i>
+  <span><%= new Date(appointment.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) %></span>
+</div>
+      </div>
+    <% }) %>
+  <% } %>
+</div>
+  <section class="card medications">
+  <h3>Prescribed Medications</h3>
+  <% if (medications.length === 0) { %>
+    <p>No medications prescribed yet.</p>
+  <% } else { %>
+    <ul>
+      <% medications.forEach(med => { %>
+        <li>
+          <strong><%= med.name %></strong> – <%= med.dosage %> – <%= med.frequency %> – <%= med.duration %>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</section>
+
+
+      <div class="doctor-actions">
+      <a href="/<%=currentUser._id%>/privatechat/<%=doctor._id%>?role=Patient" class="button primary">Chat</a>
+            <a href="/end-treatment" class="button danger" onclick="return confirmEndTreatment()">End Treatment</a>
+    </div>
+    </section>
+    <section>
+      <div class="timeline-container">
+        <h2>Progress Timeline</h2>
+        <p>View your treatment progress and updates</p>
+  <% timeline.forEach(chat => { %>
+    <div class="timeline-entry">
+      <div class="timeline-date">
+        <i class="fa fa-calendar"></i> <%= chat.createdAt.toDateString() %>
+        <i class="fa fa-clock"></i> <%= chat.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
+      </div>
+
+      <div class="timeline-bubble">
+        <div class="timeline-header">
+          <%if(chat.from.role === 'doctor'){%>
+            <strong>Dr. <%= chat.from.fullName %></strong>
+          <%} else {%>
+          <strong><%=chat.from.fullName%></strong>
+          <%}%>
+        </div>
+
+         <% if (chat.imageUrl) { %>
+            <div>Progress photo uploaded</div>
+            <img src="<%= chat.imageUrl %>" class="timeline-image" />
+          <% } %>
+        <div class="timeline-caption">
+          <%= chat.caption || 'Treatment Update' %>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+</div>
+    </section>
+  <% } else { %>
+    <section class="card no-doctor">
+      <div class="profile-info">
+        <%if(currentUser.gender=='male'){%>
+        <img src="/uploads/male.jpg" alt="<%= currentUser.fullName %>">
+        <%}else{%>
+          <img src="/uploads/female.jpg" alt="<%= currentUser.fullName %>">
+        <%}%>
+        <div>
+          <h3><%= currentUser.fullName %></h3>
+          <p><%= currentUser.gender %> | Age: <%= currentUser.age %></p>
+          <p>Email: <%= currentUser.email %></p>
+        </div>
+      </div>
+      <p class="no-connection-msg">You are not connected to a doctor. Scan a QR code to begin treatment.</p>
+    </section>
+  <% } %>
+
+</main>
+
+<!-- QR Scanner Modal -->
+<div id="qrModal">
+  <div id="qrModalContent">
+    <div id="reader"></div>
+    <input type="file" accept="image/*" id="qr-image-input" onchange="scanFromImage()" />
+    <div class="close-btn" onclick="closeScanner()">Close</div>
+  </div>
+</div>
+<script>
+  function confirmEndTreatment() {
+    return confirm('Are you sure you want to end treatment? This action cannot be undone.');
+  }
+</script>
+<script>
+  let html5QrcodeScanner;
+
+  function openScanner() {
+  document.getElementById("qrModal").style.display = "flex";
+  document.body.style.overflow = "hidden";
+
+  if (html5QrcodeScanner) {
+    html5QrcodeScanner.clear(); // clear previous
+  }
+
+  html5QrcodeScanner = new Html5Qrcode("reader");
+
+  html5QrcodeScanner.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    decodedText => {
+      window.location.href = decodedText;
+      html5QrcodeScanner.stop().then(() => html5QrcodeScanner.clear());
+    },
+    error => {}
+  ).catch(console.error);
+}
+
+function scanFromImage() {
+  const fileInput = document.getElementById("qr-image-input");
+  if (!fileInput.files.length) return;
+
+  const imageFile = fileInput.files[0];
+  const imageScanner = new Html5Qrcode("reader");
+
+  // Stop camera if active
+  if (html5QrcodeScanner) {
+    html5QrcodeScanner.stop().then(() => {
+      html5QrcodeScanner.clear();
+    }).catch(() => {});
+  }
+
+  imageScanner
+    .scanFile(imageFile, true)
+    .then(decodedText => {
+      window.location.href = decodedText;
+    })
+    .catch(err => {
+      alert("QR code not recognized.");
+      console.error(err);
+    })
+    .finally(() => {
+      fileInput.value = ""; // reset input
+    });
+}
+
+
+
+  function closeScanner() {
+    document.getElementById("qrModal").style.display = "none";
+    document.body.style.overflow = "";
+    if (html5QrcodeScanner) {
+      html5QrcodeScanner.stop().then(() => html5QrcodeScanner.clear());
+    }
+  }
+
+  // Dismiss error box
+  document.addEventListener("DOMContentLoaded", () => {
+    const closeBtn = document.getElementById('closeError');
+    const errorBox = document.getElementById('errorBox');
+    if (closeBtn && errorBox) {
+      closeBtn.addEventListener('click', () => errorBox.style.display = 'none');
+    }
+  });
+</script>
+<script>
+  // Remove ?error=... from URL after loading
+  if (window.location.search.includes('error')) {
+    const url = new URL(window.location);
+    url.searchParams.delete('error');
+    window.history.replaceState({}, document.title, url.pathname);
+  }
+</script>
+</body>
+</html>
