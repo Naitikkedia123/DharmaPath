@@ -389,7 +389,7 @@ app.get('/patient-dashboard', isPatient, async (req, res) => {
   .populate('to', 'fullName role')     // Populate `to` with only fullName
   .sort({ createdAt: 1 });
   const medications = await medication.find({ patient: req.user._id, doctor: doctorid }).populate('doctor', 'fullName');
-  res.render('patient-Dashboard', {
+  res.render('patient-dashboard', {
     currentUser: req.user,
     error,
     doctor,
