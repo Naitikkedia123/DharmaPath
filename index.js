@@ -51,7 +51,7 @@ app.use('/uploads', express.static('uploads'));
 
 // Session
 const sessionStore = MongoStore.create({
-  mongoUrl: mongodb+srv://kedianaitik2006:dAPux89zFb7rWKkD@cluster0.l3nvspt.mongodb.net/',
+  mongoUrl: 'mongodb+srv://kedianaitik2006:dAPux89zFb7rWKkD@cluster0.l3nvspt.mongodb.net/',
   crypto: { secret: 'your-secret-key' },
   touchAfter: 24 * 3600
 });
