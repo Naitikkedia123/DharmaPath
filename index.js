@@ -36,7 +36,7 @@ const router = express.Router();
 
 
 // MongoDB Connection
-mongoose.connect('mongodb://localhost:27017/dharma')
+mongoose.connect('mongodb+srv://kedianaitik2006:dAPux89zFb7rWKkD@cluster0.l3nvspt.mongodb.net/')
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error(err));
 
@@ -51,7 +51,7 @@ app.use('/uploads', express.static('uploads'));
 
 // Session
 const sessionStore = MongoStore.create({
-  mongoUrl: 'mongodb://localhost:27017/dharma',
+  mongoUrl: mongodb+srv://kedianaitik2006:dAPux89zFb7rWKkD@cluster0.l3nvspt.mongodb.net/',
   crypto: { secret: 'your-secret-key' },
   touchAfter: 24 * 3600
 });
