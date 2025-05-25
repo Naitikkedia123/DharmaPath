@@ -455,7 +455,7 @@ app.get('/end-treatment', isPatient, async (req, res) => {
     await patient.save();
 
     await Timeline.deleteMany({ patientId: patient._id, doctorId });
-
+    await Chat.deleteMany({ $or: [{ from: patient._id }, { to: patient._id }] });
     return res.redirect('/patient-dashboard?success=Treatment ended successfully');
   } catch (err) {
     console.error(err);
