@@ -231,7 +231,7 @@ app.post('/docregister', async (req, res) => {
       }
 
       // Generate QR code image and save it temporarily
-      const url = `http://localhost:10000/connect/${newDoctor.chatLink}`;
+      const url = `https://dharmapath.onrender.com/connect/${newDoctor.chatLink}`;
       const qrFilePath = path.join(__dirname, 'temp', `${newDoctor._id}-qr.png`);
 
       // Ensure temp folder exists
