@@ -454,7 +454,12 @@ app.get('/end-treatment', isPatient, async (req, res) => {
     patient.doctors = [];
     await patient.save();
 
-    await Timeline.deleteMany({ patientId: patient._id, doctorId });
+    await Timeline.deleteMany({
+      $or: [
+        { from: patient._id, fromModel: 'Patient' },
+        { to: patient._id, toModel: 'Patient' }
+      ]
+    });
     await Chat.deleteMany({ $or: [{ from: patient._id }, { to: patient._id }] });
     await medication.deleteMany({ patient: patient._id, doctor: doctorId });
     return res.redirect('/patient-dashboard?success=Treatment ended successfully');
